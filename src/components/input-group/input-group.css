@@ -1,17 +1,23 @@
-@import '../../css/units.css';
+@import "../../css/units.css";
 
 .input-group {
-    display: inline-flex;
+    display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    /* background-color: beige; */
 }
 
 [dir="ltr"] .input-group + .input-group {
-    margin-left: calc(2 * $grid-unit);
+    /* margin-left: calc(2 * $grid-unit); */
 }
 
 [dir="rtl"] .input-group + .input-group {
-    margin-right: calc(2 * $grid-unit);
+    /* margin-right: calc(2 * $grid-unit); */
 }
 
 .disabled {

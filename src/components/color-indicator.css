@@ -1,0 +1,8 @@
+.color-indicator-component-ekko {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    /* background-color: beige; */
+}

@@ -1,10 +1,46 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import {createCanvas, clearRaster, getRaster, hideGuideLayers, showGuideLayers} from './layer';
 import {getGuideColor} from './guides';
 import {clearSelection} from './selection';
 import {ART_BOARD_WIDTH, ART_BOARD_HEIGHT, CENTER, MAX_WORKSPACE_BOUNDS} from './view';
 import Formats from '../lib/format';
 import log from '../log/log';
+
+/**
+ * @param {string|CanvasGradient} color The canvas's fillStyle.
+ * @returns {boolean} True if the style will require using a mask to draw.
+ */
+const doesColorRequireMask = color => (
+    color instanceof CanvasGradient ||
+    color.startsWith('rgba(') ||
+    (color.startsWith('#') && color.length > 7)
+);
+
+const createMaskingCanvas = (originalContext, fillStyle) => {
+    const originalCanvas = originalContext.canvas;
+    if (fillStyle === null) {
+        fillStyle = '#00000000';
+    }
+    if (doesColorRequireMask(fillStyle)) {
+        const tempCanvas = createCanvas(originalCanvas.width, originalCanvas.height);
+        const tempContext = tempCanvas.getContext('2d');
+        return {
+            context: tempContext,
+            unmask: () => {
+                tempContext.globalCompositeOperation = 'source-in';
+                tempContext.fillStyle = fillStyle;
+                tempContext.fillRect(0, 0, originalCanvas.width, originalCanvas.height);
+                originalContext.drawImage(tempCanvas, 0, 0);
+            }
+        };
+    }
+    // Simple colors do not require any tricks to draw.
+    originalContext.fillStyle = fillStyle;
+    return {
+        context: originalContext,
+        unmask: () => {}
+    };
+};
 
 const forEachLinePoint = function (point1, point2, callback) {
     // Bresenham line algorithm
@@ -38,7 +74,7 @@ const forEachLinePoint = function (point1, point2, callback) {
  * @param {!number} a Coefficient in ax^2 + bx + c = 0
  * @param {!number} b Coefficient in ax^2 + bx + c = 0
  * @param {!number} c Coefficient in ax^2 + bx + c = 0
- * @returns {Array<number>} Array of 2 solutions, with the larger solution first
+ * @return {Array<number>} Array of 2 solutions, with the larger solution first
  */
 const solveQuadratic_ = function (a, b, c) {
     const soln1 = (-b + Math.sqrt((b * b) - (4 * a * c))) / 2 / a;
@@ -54,10 +90,10 @@ const solveQuadratic_ = function (a, b, c) {
  * @param {!number} options.radiusY minor radius of ellipse
  * @param {!number} options.shearSlope slope of the sheared x axis
  * @param {?boolean} options.isFilled true if isFilled
- * @param {?Function} options.drawFn The function called on each point in the outline, used only
+ * @param {?function} options.drawFn The function called on each point in the outline, used only
  *     if isFilled is false.
  * @param {!CanvasRenderingContext2D} context for drawing
- * @returns {boolean} true if anything was drawn, false if not
+ * @return {boolean} true if anything was drawn, false if not
  */
 const drawShearedEllipse_ = function (options, context) {
     const centerX = ~~options.centerX;
@@ -83,8 +119,8 @@ const drawShearedEllipse_ = function (options, context) {
     /**
      * Vertical stepping portion of ellipse drawing algorithm
      * @param {!number} startY y to start drawing from
-     * @param {!Function} conditionFn function which should become true when we should stop stepping
-     * @returns {object} last point drawn to the canvas, or null if no points drawn
+     * @param {!function} conditionFn function which should become true when we should stop stepping
+     * @return {object} last point drawn to the canvas, or null if no points drawn
      */
     const drawEllipseStepVertical_ = function (startY, conditionFn) {
         // Points on the ellipse
@@ -114,8 +150,8 @@ const drawShearedEllipse_ = function (options, context) {
     /**
      * Horizontal stepping portion of ellipse drawing algorithm
      * @param {!number} startX x to start drawing from
-     * @param {!Function} conditionFn function which should become false when we should stop stepping
-     * @returns {object} last point drawn to the canvas, or null if no points drawn
+     * @param {!function} conditionFn function which should become false when we should stop stepping
+     * @return {object} last point drawn to the canvas, or null if no points drawn
      */
     const drawEllipseStepHorizontal_ = function (startX, conditionFn) {
         // Points on the ellipse
@@ -198,7 +234,7 @@ const drawShearedEllipse_ = function (options, context) {
  * @param {!number} size The diameter of the brush
  * @param {!string} color The css color of the brush
  * @param {?boolean} isEraser True if we want the brush mark for the eraser
- * @returns {HTMLCanvasElement} a canvas with the brush mark printed on it
+ * @return {HTMLCanvasElement} a canvas with the brush mark printed on it
  */
 const getBrushMark = function (size, color, isEraser) {
     size = ~~size;
@@ -206,9 +242,8 @@ const getBrushMark = function (size, color, isEraser) {
     const roundedUpRadius = Math.ceil(size / 2);
     canvas.width = roundedUpRadius * 2;
     canvas.height = roundedUpRadius * 2;
-    const context = canvas.getContext('2d');
+    const {context, unmask} = createMaskingCanvas(canvas.getContext('2d'), isEraser ? 'white' : color);
     context.imageSmoothingEnabled = false;
-    context.fillStyle = isEraser ? 'white' : color;
     // Small squares for pixel artists
     if (size <= 5) {
         let offset = 0;
@@ -244,6 +279,7 @@ const getBrushMark = function (size, color, isEraser) {
             }, context);
         }
     }
+    unmask();
     return canvas;
 };
 
@@ -251,6 +287,7 @@ const getBrushMark = function (size, color, isEraser) {
  * Draw an ellipse, given the original axis-aligned radii and
  * an affine transformation. Returns false if the ellipse could
  * not be drawn; for instance, the matrix is non-invertible.
+ *
  * @param {!options} options Parameters for the ellipse
  * @param {!paper.Point} options.position Center of ellipse
  * @param {!number} options.radiusX x-aligned radius of ellipse
@@ -259,7 +296,7 @@ const getBrushMark = function (size, color, isEraser) {
  * @param {?boolean} options.isFilled true if isFilled
  * @param {?number} options.thickness Thickness of outline, used only if isFilled is false.
  * @param {!CanvasRenderingContext2D} context for drawing
- * @returns {boolean} true if anything was drawn, false if not
+ * @return {boolean} true if anything was drawn, false if not
  */
 const drawEllipse = function (options, context) {
     const positionX = options.position.x;
@@ -274,7 +311,7 @@ const drawEllipse = function (options, context) {
     if (!matrix.isInvertible()) return false;
     const inverse = matrix.clone().invert();
 
-    const isGradient = context.fillStyle instanceof CanvasGradient;
+    const needsMask = doesColorRequireMask(context.fillStyle);
 
     // If drawing a gradient, we need to draw the shape onto a temporary canvas, then draw the gradient atop that canvas
     // only where the shape appears. drawShearedEllipse draws some pixels twice, which would be a problem if the
@@ -284,14 +321,14 @@ const drawEllipse = function (options, context) {
     let origContext;
     let tmpCanvas;
     const {width: canvasWidth, height: canvasHeight} = context.canvas;
-    if (isGradient) {
+    if (needsMask) {
         tmpCanvas = createCanvas(canvasWidth, canvasHeight);
         origContext = context;
         context = tmpCanvas.getContext('2d');
     }
 
     if (!isFilled) {
-        const brushMark = getBrushMark(thickness, isGradient ? 'black' : context.fillStyle);
+        const brushMark = getBrushMark(thickness, needsMask ? 'black' : context.fillStyle);
         const roundedUpRadius = Math.ceil(thickness / 2);
         drawFn = (x, y) => {
             context.drawImage(brushMark, ~~x - roundedUpRadius, ~~y - roundedUpRadius);
@@ -322,7 +359,7 @@ const drawEllipse = function (options, context) {
 
     // Mask in the gradient only where the shape was drawn, and draw it. Then draw the gradientified shape onto the
     // original canvas normally.
-    if (isGradient && wasDrawn) {
+    if (needsMask && wasDrawn) {
         context.globalCompositeOperation = 'source-in';
         context.fillStyle = origContext.fillStyle;
         context.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -439,7 +476,7 @@ const convertToBitmap = function (clearSelectedItems, onUpdateImage, optFontInli
         }
         for (let i = paper.project.activeLayer.children.length - 1; i >= 0; i--) {
             const item = paper.project.activeLayer.children[i];
-            if (item.clipMask === false) {
+            if (item.clipMask === false || !item.guide) {
                 item.remove();
             } else {
                 // Resize mask for bitmap bounds
@@ -469,7 +506,7 @@ const convertToBitmap = function (clearSelectedItems, onUpdateImage, optFontInli
 const convertToVector = function (clearSelectedItems, onUpdateImage) {
     clearSelection(clearSelectedItems);
     for (const item of paper.project.activeLayer.children) {
-        if (item.clipMask === true) {
+        if (item.clipMask === true && item.guide) {
             // Resize mask for vector bounds
             item.size.height = MAX_WORKSPACE_BOUNDS.height;
             item.size.width = MAX_WORKSPACE_BOUNDS.width;
@@ -507,6 +544,7 @@ const colorPixel_ = function (x, y, imageData, newColor) {
 /**
  * Flood fill beginning at the given point.
  * Based on http://www.williammalone.com/articles/html5-canvas-javascript-paint-bucket-tool/
+ *
  * @param {!int} x The x coordinate on the context at which to begin
  * @param {!int} y The y coordinate on the context at which to begin
  * @param {!ImageData} sourceImageData The image data to sample from. This is edited by the function.
@@ -553,7 +591,7 @@ const floodFillInternal_ = function (x, y, sourceImageData, destImageData, newCo
 /**
  * Given a fill style string, get the color
  * @param {string} fillStyleString the fill style
- * @returns {Array<int>} Color, a length 4 array
+ * @return {Array<int>} Color, a length 4 array
  */
 const fillStyleToColor_ = function (fillStyleString) {
     const tmpCanvas = document.createElement('canvas');
@@ -573,7 +611,7 @@ const fillStyleToColor_ = function (fillStyleString) {
  * @param {!HTMLCanvas2DContext} sourceContext The context from which to sample to determine where to flood fill
  * @param {!HTMLCanvas2DContext} destContext The context to which to draw. May match sourceContext. Should match
  *     the size of sourceContext.
- * @returns {boolean} True if image changed, false otherwise
+ * @return {boolean} True if image changed, false otherwise
  */
 const floodFill = function (x, y, color, sourceContext, destContext) {
     x = ~~x;
@@ -607,7 +645,7 @@ const floodFill = function (x, y, color, sourceContext, destContext) {
  * @param {!string} color A color string, which would go into context.fillStyle
  * @param {!HTMLCanvas2DContext} sourceContext The context from which to sample to determine where to flood fill
  * @param {!HTMLCanvas2DContext} destContext The context to which to draw. May match sourceContext. Should match
- * @returns {boolean} True if image changed, false otherwise
+ * @return {boolean} True if image changed, false otherwise
  */
 const floodFillAll = function (x, y, color, sourceContext, destContext) {
     x = ~~x;
@@ -687,7 +725,7 @@ const outlineRect = function (rect, thickness, context) {
         context.drawImage(brushMark, ~~x - roundedUpRadius, ~~y - roundedUpRadius);
     };
 
-    const isGradient = context.fillStyle instanceof CanvasGradient;
+    const needsMask = doesColorRequireMask(context.fillStyle);
 
     // If drawing a gradient, we need to draw the shape onto a temporary canvas, then draw the gradient atop that canvas
     // only where the shape appears. Outlines are drawn as a series of brush mark images and as such can't be drawn as
@@ -695,7 +733,7 @@ const outlineRect = function (rect, thickness, context) {
     let origContext;
     let tmpCanvas;
     const {width: canvasWidth, height: canvasHeight} = context.canvas;
-    if (isGradient) {
+    if (needsMask) {
         tmpCanvas = createCanvas(canvasWidth, canvasHeight);
         origContext = context;
         context = tmpCanvas.getContext('2d');
@@ -713,7 +751,7 @@ const outlineRect = function (rect, thickness, context) {
 
     // Mask in the gradient only where the shape was drawn, and draw it. Then draw the gradientified shape onto the
     // original canvas normally.
-    if (isGradient) {
+    if (needsMask) {
         context.globalCompositeOperation = 'source-in';
         context.fillStyle = origContext.fillStyle;
         context.fillRect(0, 0, canvasWidth, canvasHeight);
@@ -885,7 +923,7 @@ const _paperColorToCanvasStyle = function (color, context) {
 /**
  * @param {paper.Shape.Ellipse} oval Vector oval to convert
  * @param {paper.Raster} bitmap raster to draw selection
- * @returns {bool} true if the oval was drawn
+ * @return {bool} true if the oval was drawn
  */
 const commitOvalToBitmap = function (oval, bitmap) {
     const radiusX = Math.abs(oval.size.width / 2);
@@ -948,6 +986,8 @@ const selectAllBitmap = function (clearSelectedItems) {
 };
 
 export {
+    doesColorRequireMask,
+    createMaskingCanvas,
     commitSelectionToBitmap,
     commitOvalToBitmap,
     commitRectToBitmap,

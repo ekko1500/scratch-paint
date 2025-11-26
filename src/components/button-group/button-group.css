@@ -1,7 +1,14 @@
 @import "../../css/units";
 
 .button-group {
-    display: inline-flex;
-    flex-direction: row;
-    padding: 0 $grid-unit;
+    display: flex;
+
+    /* margin: 0 0 0 $space; */
+    /* background-color: bisque; */
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+[dir="rtl"] .button-group {
+    /* margin: 0 $space 0 0; */
 }

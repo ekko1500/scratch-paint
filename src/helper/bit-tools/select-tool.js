@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import Modes from '../../lib/modes';
 
 import {getRaster} from '../layer';
@@ -24,7 +24,7 @@ class SelectTool extends paper.Tool {
      * @param {function} setSelectedItems Callback to set the set of selected items in the Redux state
      * @param {function} clearSelectedItems Callback to clear the set of selected items in the Redux state
      * @param {function} setCursor Callback to set the visible mouse cursor
-     * @param {!Function} onUpdateImage A callback to call when the image visibly changes
+     * @param {!function} onUpdateImage A callback to call when the image visibly changes
      */
     constructor (setSelectedItems, clearSelectedItems, setCursor, onUpdateImage) {
         super();
@@ -71,7 +71,7 @@ class SelectTool extends paper.Tool {
     }
     /**
      * Returns the hit options to use when conducting hit tests.
-     * @returns {object} See paper.Item.hitTest for definition of options
+     * @return {object} See paper.Item.hitTest for definition of options
      */
     getHitOptions () {
         // Tolerance needs to be scaled when the view is zoomed in in order to represent the same

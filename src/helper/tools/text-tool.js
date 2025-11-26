@@ -1,10 +1,20 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import Modes from '../../lib/modes';
 import {clearSelection, getSelectedLeafItems} from '../selection';
 import BoundingBoxTool from '../selection-tools/bounding-box-tool';
 import NudgeTool from '../selection-tools/nudge-tool';
 import {hoverBounds} from '../guides';
 import {getRaster} from '../layer';
+
+const getTextColor = text => {
+    let color = text.fillColor;
+    if (!color) return null;
+    color = color.clone();
+    color.alpha = 1;
+    if (color.type !== 'gradient') return color;
+    const firstStop = text.fillColor.gradient.stops[0];
+    return firstStop.color;
+};
 
 /**
  * Tool for adding text. Text elements have limited editability; they can't be reshaped,
@@ -36,9 +46,9 @@ class TextTool extends paper.Tool {
      * @param {function} setSelectedItems Callback to set the set of selected items in the Redux state
      * @param {function} clearSelectedItems Callback to clear the set of selected items in the Redux state
      * @param {function} setCursor Callback to set the visible mouse cursor
-     * @param {!Function} onUpdateImage A callback to call when the image visibly changes
-     * @param {!Function} setTextEditTarget Call to set text editing target whenever text editing is active
-     * @param {!Function} changeFont Call to change the font in the dropdown
+     * @param {!function} onUpdateImage A callback to call when the image visibly changes
+     * @param {!function} setTextEditTarget Call to set text editing target whenever text editing is active
+     * @param {!function} changeFont Call to change the font in the dropdown
      * @param {?boolean} isBitmap True if text should be rasterized once it's deselected
      */
     constructor (textAreaElement, setSelectedItems, clearSelectedItems, setCursor, onUpdateImage, setTextEditTarget,
@@ -173,7 +183,7 @@ class TextTool extends paper.Tool {
         calculated.append(viewMtx);
         calculated.append(textBoxMtx);
         this.element.style.transform = `matrix(${calculated.a}, ${calculated.b}, ${calculated.c}, ${calculated.d},
-            ${calculated.tx}, ${calculated.ty})`;
+             ${calculated.tx}, ${calculated.ty})`;
     }
     setColorState (colorState) {
         this.colorState = colorState;
@@ -272,7 +282,7 @@ class TextTool extends paper.Tool {
         this.active = false;
     }
     handleKeyUp (event) {
-        if (event.event.target instanceof HTMLInputElement) {
+        if (event.event.target instanceof HTMLInputElement || event.event.target instanceof HTMLTextAreaElement) {
             // Ignore nudge if a text input field is focused
             return;
         }
@@ -282,7 +292,7 @@ class TextTool extends paper.Tool {
         }
     }
     handleKeyDown (event) {
-        if (event.event.target instanceof HTMLInputElement) {
+        if (event.event.target instanceof HTMLInputElement || event.event.target instanceof HTMLTextAreaElement) {
             // Ignore nudge if a text input field is focused
             return;
         }
@@ -344,6 +354,9 @@ class TextTool extends paper.Tool {
         }
         this.element.style.fontSize = `${this.textBox.fontSize}px`;
         this.element.style.lineHeight = this.textBox.leading / this.textBox.fontSize;
+
+        const fillColor = getTextColor(textBox);
+        this.element.style.color = fillColor ? fillColor.toCSS() : '';
 
         this.element.style.display = 'initial';
         this.element.value = textBox.content ? textBox.content : '';

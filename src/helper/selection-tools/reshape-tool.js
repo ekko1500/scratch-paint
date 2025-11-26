@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import log from '../../log/log';
 import keyMirror from 'keymirror';
 
@@ -56,8 +56,8 @@ class ReshapeTool extends paper.Tool {
      * @param {function} clearHoveredItem Callback to clear the hovered item
      * @param {function} setSelectedItems Callback to set the set of selected items in the Redux state
      * @param {function} clearSelectedItems Callback to clear the set of selected items in the Redux state
-     * @param {!Function} onUpdateImage A callback to call when the image visibly changes
-     * @param {!Function} switchToTextTool A callback to call to switch to the text tool
+     * @param {!function} onUpdateImage A callback to call when the image visibly changes
+     * @param {!function} switchToTextTool A callback to call to switch to the text tool
      */
     constructor (setHoveredItem, clearHoveredItem, setSelectedItems, clearSelectedItems, onUpdateImage,
         switchToTextTool) {
@@ -95,7 +95,7 @@ class ReshapeTool extends paper.Tool {
      * Returns the hit options for segments to use when conducting hit tests. Segments are only visible
      * when the shape is selected. Segments take precedence, since they are always over curves and need
      * to be grabbable. (Segments are the little circles)
-     * @returns {object} See paper.Item.hitTest for definition of options
+     * @return {object} See paper.Item.hitTest for definition of options
      */
     getSelectedSegmentHitOptions () {
         const hitOptions = {
@@ -114,7 +114,7 @@ class ReshapeTool extends paper.Tool {
      * Returns the hit options for handles to use when conducting hit tests. Handles need to be done
      * separately because we want to ignore hidden handles, but we don't want hidden handles to negate
      * legitimate hits on other things (like if the handle is over part of the fill). (Handles are the diamonds)
-     * @returns {object} See paper.Item.hitTest for definition of options
+     * @return {object} See paper.Item.hitTest for definition of options
      */
     getHandleHitOptions () {
         const hitOptions = {
@@ -135,7 +135,7 @@ class ReshapeTool extends paper.Tool {
     /**
      * Returns the hit options for curves of selected objects, which take precedence over
      * unselected things and fills.
-     * @returns {object} See paper.Item.hitTest for definition of options
+     * @return {object} See paper.Item.hitTest for definition of options
      */
     getSelectedStrokeHitOptions () {
         const hitOptions = {
@@ -159,7 +159,7 @@ class ReshapeTool extends paper.Tool {
      * Returns the hit options for fills and unselected strokes/curves to use when conducting hit tests.
      * @param {boolean} preselectedOnly True if we should only return results that are already
      *     selected.
-     * @returns {object} See paper.Item.hitTest for definition of options
+     * @return {object} See paper.Item.hitTest for definition of options
      */
     getUnselectedAndFillHitOptions () {
         const hitOptions = {
@@ -187,7 +187,7 @@ class ReshapeTool extends paper.Tool {
     /**
      * Given the point at which the mouse is, return the prioritized hit result, or null if nothing was hit.
      * @param {paper.Point} point Point to hit test on canvas
-     * @returns {?paper.HitResult} hitResult
+     * @return {?paper.HitResult} hitResult
      */
     getHitResult (point) {
         // Prefer hits on segments to other types of hits, since segments always overlap curves.
@@ -310,7 +310,7 @@ class ReshapeTool extends paper.Tool {
         this.active = false;
     }
     handleKeyDown (event) {
-        if (event.event.target instanceof HTMLInputElement) {
+        if (event.event.target instanceof HTMLInputElement || event.event.target instanceof HTMLTextAreaElement) {
             // Ignore nudge if a text input field is focused
             return;
         }

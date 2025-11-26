@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import PropTypes from 'prop-types';
 import log from '../log/log';
 import React from 'react';
@@ -17,15 +17,19 @@ import {deactivateEyeDropper} from '../reducers/eye-dropper';
 import {setTextEditTarget} from '../reducers/text-edit-target';
 import {updateViewBounds} from '../reducers/view-bounds';
 import {setLayout} from '../reducers/layout';
+import {setTheme as setReduxTheme} from '../reducers/theme';
+import {setCustomFonts} from '../reducers/custom-fonts';
 
 import {getSelectedLeafItems} from '../helper/selection';
 import {convertToBitmap, convertToVector} from '../helper/bitmap';
-import {resetZoom, zoomOnSelection, OUTERMOST_ZOOM_LEVEL} from '../helper/view';
+import {resizeView, resetZoom, zoomOnSelection, OUTERMOST_ZOOM_LEVEL} from '../helper/view';
 import EyeDropperTool from '../helper/tools/eye-dropper';
 
 import Modes, {BitmapModes, VectorModes} from '../lib/modes';
 import Formats, {isBitmap, isVector} from '../lib/format';
 import bindAll from 'lodash.bindall';
+
+window.paper = paper;
 
 /**
  * The top-level paint editor component. See README for more details on usage.
@@ -83,6 +87,7 @@ class PaintEditor extends React.Component {
             'startEyeDroppingLoop',
             'stopEyeDroppingLoop',
             'handleSetSelectedItems',
+            'handleChangeTheme',
             'handleZoomIn',
             'handleZoomOut',
             'handleZoomReset'
@@ -92,6 +97,8 @@ class PaintEditor extends React.Component {
             colorInfo: null
         };
         this.props.setLayout(this.props.rtl ? 'rtl' : 'ltr');
+        this.props.onCustomFontsChanged(this.props.customFonts);
+        resizeView(this.props.width, this.props.height);
     }
     componentDidMount () {
         document.addEventListener('keydown', this.props.onKeyPress);
@@ -111,6 +118,12 @@ class PaintEditor extends React.Component {
         }
         if (newProps.rtl !== this.props.rtl) {
             this.props.setLayout(newProps.rtl ? 'rtl' : 'ltr');
+        }
+        if (this.props.theme !== newProps.theme) {
+            this.props.setReduxTheme('default');
+        }
+        if (this.props.customFonts !== newProps.customFonts) {
+            this.props.onCustomFontsChanged(newProps.customFonts);
         }
     }
     componentDidUpdate (prevProps) {
@@ -208,6 +221,13 @@ class PaintEditor extends React.Component {
             }
         }
     }
+    getEffectiveTheme () {
+        return this.props.reduxTheme === 'default' ? this.props.theme : this.props.reduxTheme;
+    }
+    handleChangeTheme () {
+        const newTheme = this.getEffectiveTheme() === 'light' ? 'dark' : 'light';
+        this.props.setReduxTheme(newTheme === this.props.theme ? 'default' : newTheme);
+    }
     handleZoomIn () {
         // Make the "next step" after the outermost zoom level be the default
         // zoom level (0.5)
@@ -281,7 +301,8 @@ class PaintEditor extends React.Component {
         this.eyeDropper.pickY = -1;
         this.eyeDropper.activate();
 
-        this.intervalId = setInterval(() => {
+        const callback = () => {
+            this.animationFrameId = requestAnimationFrame(callback);
             const colorInfo = this.eyeDropper.getColorInfo(
                 this.eyeDropper.pickX,
                 this.eyeDropper.pickY,
@@ -297,10 +318,11 @@ class PaintEditor extends React.Component {
                     colorInfo: colorInfo
                 });
             }
-        }, 30);
+        };
+        this.animationFrameId = requestAnimationFrame(callback);
     }
     stopEyeDroppingLoop () {
-        clearInterval(this.intervalId);
+        cancelAnimationFrame(this.animationFrameId);
         this.setState({colorInfo: null});
     }
     render () {
@@ -322,7 +344,11 @@ class PaintEditor extends React.Component {
                 setCanvas={this.setCanvas}
                 setTextArea={this.setTextArea}
                 textArea={this.state.textArea}
+                theme={this.getEffectiveTheme()}
+                width={this.props.width}
                 zoomLevelId={this.props.zoomLevelId}
+                onChangeTheme={this.handleChangeTheme}
+                onManageFonts={this.props.onManageFonts}
                 onRedo={this.props.onRedo}
                 onSwitchToBitmap={this.props.handleSwitchToBitmap}
                 onSwitchToVector={this.props.handleSwitchToVector}
@@ -341,6 +367,12 @@ PaintEditor.propTypes = {
     changeColorToEyeDropper: PropTypes.func,
     changeMode: PropTypes.func.isRequired,
     clearSelectedItems: PropTypes.func.isRequired,
+    customFonts: PropTypes.arrayOf(PropTypes.shape({
+        name: PropTypes.string.isRequired,
+        family: PropTypes.string.isRequired
+    })).isRequired,
+    onCustomFontsChanged: PropTypes.func.isRequired,
+    onManageFonts: PropTypes.func,
     format: PropTypes.oneOf(Object.keys(Formats)), // Internal, up-to-date data format
     fontInlineFn: PropTypes.func,
     handleSwitchToBitmap: PropTypes.func.isRequired,
@@ -372,9 +404,21 @@ PaintEditor.propTypes = {
     setSelectedItems: PropTypes.func.isRequired,
     shouldShowRedo: PropTypes.func.isRequired,
     shouldShowUndo: PropTypes.func.isRequired,
+    theme: PropTypes.oneOf(['light', 'dark']),
+    reduxTheme: PropTypes.oneOf(['default', 'light', 'dark']),
+    setReduxTheme: PropTypes.func.isRequired,
+    width: PropTypes.number,
+    height: PropTypes.number,
     updateViewBounds: PropTypes.func.isRequired,
     viewBounds: PropTypes.instanceOf(paper.Matrix).isRequired,
     zoomLevelId: PropTypes.string
+};
+
+PaintEditor.defaultProps = {
+    width: 480,
+    height: 360,
+    theme: 'light',
+    customFonts: []
 };
 
 const mapStateToProps = state => ({
@@ -383,6 +427,7 @@ const mapStateToProps = state => ({
     isEyeDropping: state.scratchPaint.color.eyeDropper.active,
     mode: state.scratchPaint.mode,
     previousTool: state.scratchPaint.color.eyeDropper.previousTool,
+    reduxTheme: state.scratchPaint.theme,
     viewBounds: state.scratchPaint.viewBounds
 });
 const mapDispatchToProps = dispatch => ({
@@ -391,6 +436,9 @@ const mapDispatchToProps = dispatch => ({
     },
     clearSelectedItems: () => {
         dispatch(clearSelectedItems());
+    },
+    onCustomFontsChanged: customFonts => {
+        dispatch(setCustomFonts(customFonts));
     },
     handleSwitchToBitmap: () => {
         dispatch(changeFormat(Formats.BITMAP));
@@ -403,6 +451,9 @@ const mapDispatchToProps = dispatch => ({
     },
     setLayout: layout => {
         dispatch(setLayout(layout));
+    },
+    setReduxTheme: theme => {
+        dispatch(setReduxTheme(theme));
     },
     setSelectedItems: format => {
         dispatch(setSelectedItems(getSelectedLeafItems(), isBitmap(format)));

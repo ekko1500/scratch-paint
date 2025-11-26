@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import log from '../log/log';
 
 const UPDATE_VIEW_BOUNDS = 'scratch-paint/view/UPDATE_VIEW_BOUNDS';
@@ -22,7 +22,7 @@ const reducer = function (state, action) {
 /**
  * Set the view bounds, which defines the zoom and scroll of the paper canvas.
  * @param {paper.Matrix} matrix The matrix applied to the view
- * @returns {object} Redux action to set the view bounds
+ * @return {object} Redux action to set the view bounds
  */
 const updateViewBounds = function (matrix) {
     return {

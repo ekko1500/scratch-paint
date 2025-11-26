@@ -24,7 +24,7 @@ const reducer = function (state, action) {
 /**
  * Set the hovered item state to the given item ID
  * @param {number} hoveredItemId The paper.Item ID of the hover indicator item.
- * @returns {object} Redux action to change the hovered item.
+ * @return {object} Redux action to change the hovered item.
  */
 const setHoveredItem = function (hoveredItemId) {
     return {

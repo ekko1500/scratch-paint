@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import {getSelectedRootItems} from '../selection';
 import {getActionBounds} from '../view';
 import {BitmapModes} from '../../lib/modes';
@@ -13,7 +13,7 @@ class NudgeTool {
     /**
      * @param {Mode} mode Paint editor mode
      * @param {function} boundingBoxTool to control the bounding box
-     * @param {!Function} onUpdateImage A callback to call when the image visibly changes
+     * @param {!function} onUpdateImage A callback to call when the image visibly changes
      */
     constructor (mode, boundingBoxTool, onUpdateImage) {
         this.boundingBoxTool = boundingBoxTool;
@@ -21,7 +21,7 @@ class NudgeTool {
         this.boundingBoxTool.isBitmap = mode in BitmapModes;
     }
     onKeyDown (event) {
-        if (event.event.target instanceof HTMLInputElement) {
+        if (event.event.target instanceof HTMLInputElement || event.event.target instanceof HTMLTextAreaElement) {
             // Ignore nudge if a text input field is focused
             return;
         }
@@ -31,7 +31,7 @@ class NudgeTool {
 
         const selected = getSelectedRootItems();
         if (selected.length === 0) return;
-
+        
         // Get bounds. Don't let item bounds go out of bounds.
         let rect;
         for (const item of selected) {

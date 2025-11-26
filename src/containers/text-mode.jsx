@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import PropTypes from 'prop-types';
 import React from 'react';
 import {connect} from 'react-redux';
@@ -96,8 +96,7 @@ class TextMode extends React.Component {
         } else if (fillColorPresent && !strokeColorPresent) {
             this.props.onChangeStrokeColor(null);
         }
-        if (!nextProps.font || Object.keys(Fonts).map(key => Fonts[key])
-            .indexOf(nextProps.font) < 0) {
+        if (!nextProps.font) {
             this.props.changeFont(Fonts.SANS_SERIF);
         }
 

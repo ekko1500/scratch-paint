@@ -12,7 +12,7 @@ import {setShapesFilled} from '../../reducers/fill-bitmap-shapes';
 import FontDropdown from '../../containers/font-dropdown.jsx';
 import LiveInputHOC from '../forms/live-input-hoc.jsx';
 import Label from '../forms/label.jsx';
-import {defineMessages, useIntl} from 'react-intl';
+import {defineMessages, injectIntl, intlShape} from 'react-intl';
 import Input from '../forms/input.jsx';
 import InputGroup from '../input-group/input-group.jsx';
 import LabeledIconButton from '../labeled-icon-button/labeled-icon-button.jsx';
@@ -21,19 +21,19 @@ import Formats, {isBitmap, isVector} from '../../lib/format';
 import {hideLabel} from '../../lib/hide-label';
 import styles from './mode-tools.css';
 
-import copyIcon from './icons/copy.svg';
-import pasteIcon from './icons/paste.svg';
-import deleteIcon from './icons/delete.svg';
+import copyIcon from '!../../tw-recolor/build!./icons/copy.svg';
+import pasteIcon from '!../../tw-recolor/build!./icons/paste.svg';
+import deleteIcon from '!../../tw-recolor/build!./icons/delete.svg';
 
 import bitBrushIcon from '../bit-brush-mode/brush.svg';
 import bitEraserIcon from '../bit-eraser-mode/eraser.svg';
 import bitLineIcon from '../bit-line-mode/line.svg';
 import brushIcon from '../brush-mode/brush.svg';
-import curvedPointIcon from './icons/curved-point.svg';
+import curvedPointIcon from '!../../tw-recolor/build!./icons/curved-point.svg';
 import eraserIcon from '../eraser-mode/eraser.svg';
-import flipHorizontalIcon from './icons/flip-horizontal.svg';
-import flipVerticalIcon from './icons/flip-vertical.svg';
-import straightPointIcon from './icons/straight-point.svg';
+import flipHorizontalIcon from '!../../tw-recolor/build!./icons/flip-horizontal.svg';
+import flipVerticalIcon from '!../../tw-recolor/build!./icons/flip-vertical.svg';
+import straightPointIcon from '!../../tw-recolor/build!./icons/straight-point.svg';
 import bitOvalIcon from '../bit-oval-mode/oval.svg';
 import bitRectIcon from '../bit-rect-mode/rectangle.svg';
 import bitOvalOutlinedIcon from '../bit-oval-mode/oval-outlined.svg';
@@ -43,7 +43,6 @@ import {MAX_STROKE_WIDTH} from '../../reducers/stroke-width';
 
 const LiveInput = LiveInputHOC(Input);
 const ModeToolsComponent = props => {
-    const intl = useIntl();
     const messages = defineMessages({
         brushSize: {
             defaultMessage: 'Size',
@@ -123,7 +122,7 @@ const ModeToolsComponent = props => {
             <div className={classNames(props.className, styles.modeTools)}>
                 <div>
                     <img
-                        alt={intl.formatMessage(currentMessage)}
+                        alt={props.intl.formatMessage(currentMessage)}
                         className={styles.modeToolsIcon}
                         draggable={false}
                         src={currentIcon}
@@ -152,7 +151,7 @@ const ModeToolsComponent = props => {
             <div className={classNames(props.className, styles.modeTools)}>
                 <div>
                     <img
-                        alt={intl.formatMessage(messages.eraserSize)}
+                        alt={props.intl.formatMessage(messages.eraserSize)}
                         className={styles.modeToolsIcon}
                         draggable={false}
                         src={currentIcon}
@@ -176,24 +175,24 @@ const ModeToolsComponent = props => {
                 <InputGroup className={classNames(styles.modDashedBorder, styles.modLabeledIconHeight)}>
                     <LabeledIconButton
                         disabled={!props.hasSelectedUncurvedPoints}
-                        hideLabel={hideLabel(intl.locale)}
+                        hideLabel={hideLabel(props.intl.locale)}
                         imgSrc={curvedPointIcon}
-                        title={intl.formatMessage(messages.curved)}
+                        title={props.intl.formatMessage(messages.curved)}
                         onClick={props.onCurvePoints}
                     />
                     <LabeledIconButton
                         disabled={!props.hasSelectedUnpointedPoints}
-                        hideLabel={hideLabel(intl.locale)}
+                        hideLabel={hideLabel(props.intl.locale)}
                         imgSrc={straightPointIcon}
-                        title={intl.formatMessage(messages.pointed)}
+                        title={props.intl.formatMessage(messages.pointed)}
                         onClick={props.onPointPoints}
                     />
                 </InputGroup>
                 <InputGroup className={classNames(styles.modLabeledIconHeight)}>
                     <LabeledIconButton
-                        hideLabel={hideLabel(intl.locale)}
+                        hideLabel={hideLabel(props.intl.locale)}
                         imgSrc={deleteIcon}
-                        title={intl.formatMessage(messages.delete)}
+                        title={props.intl.formatMessage(messages.delete)}
                         onClick={props.onDelete}
                     />
                 </InputGroup>
@@ -206,38 +205,38 @@ const ModeToolsComponent = props => {
             <div className={classNames(props.className, styles.modeTools)}>
                 <InputGroup className={classNames(styles.modDashedBorder, styles.modLabeledIconHeight)}>
                     <LabeledIconButton
-                        hideLabel={hideLabel(intl.locale)}
+                        hideLabel={hideLabel(props.intl.locale)}
                         imgSrc={copyIcon}
-                        title={intl.formatMessage(messages.copy)}
+                        title={props.intl.formatMessage(messages.copy)}
                         onClick={props.onCopyToClipboard}
                     />
                     <LabeledIconButton
                         disabled={!(props.clipboardItems.length > 0)}
-                        hideLabel={hideLabel(intl.locale)}
+                        hideLabel={hideLabel(props.intl.locale)}
                         imgSrc={pasteIcon}
-                        title={intl.formatMessage(messages.paste)}
+                        title={props.intl.formatMessage(messages.paste)}
                         onClick={props.onPasteFromClipboard}
                     />
                 </InputGroup>
                 <InputGroup className={classNames(styles.modDashedBorder, styles.modLabeledIconHeight)}>
                     <LabeledIconButton
-                        hideLabel={hideLabel(intl.locale)}
+                        hideLabel={hideLabel(props.intl.locale)}
                         imgSrc={deleteIcon}
-                        title={intl.formatMessage(messages.delete)}
+                        title={props.intl.formatMessage(messages.delete)}
                         onClick={props.onDelete}
                     />
                 </InputGroup>
                 <InputGroup className={classNames(styles.modLabeledIconHeight)}>
                     <LabeledIconButton
-                        hideLabel={intl.locale !== 'en'}
+                        hideLabel={props.intl.locale !== 'en'}
                         imgSrc={flipHorizontalIcon}
-                        title={intl.formatMessage(messages.flipHorizontal)}
+                        title={props.intl.formatMessage(messages.flipHorizontal)}
                         onClick={props.onFlipHorizontal}
                     />
                     <LabeledIconButton
-                        hideLabel={intl.locale !== 'en'}
+                        hideLabel={props.intl.locale !== 'en'}
                         imgSrc={flipVerticalIcon}
-                        title={intl.formatMessage(messages.flipVertical)}
+                        title={props.intl.formatMessage(messages.flipVertical)}
                         onClick={props.onFlipVertical}
                     />
                 </InputGroup>
@@ -251,6 +250,7 @@ const ModeToolsComponent = props => {
                 <InputGroup>
                     <FontDropdown
                         onUpdateImage={props.onUpdateImage}
+                        onManageFonts={props.onManageFonts}
                     />
                 </InputGroup>
             </div>
@@ -267,21 +267,23 @@ const ModeToolsComponent = props => {
                     <LabeledIconButton
                         highlighted={props.fillBitmapShapes}
                         imgSrc={fillIcon}
-                        title={intl.formatMessage(messages.filled)}
+                        title={props.intl.formatMessage(messages.filled)}
                         onClick={props.onFillShapes}
+                        gray
                     />
                 </InputGroup>
                 <InputGroup>
                     <LabeledIconButton
                         highlighted={!props.fillBitmapShapes}
                         imgSrc={outlineIcon}
-                        title={intl.formatMessage(messages.outlined)}
+                        title={props.intl.formatMessage(messages.outlined)}
                         onClick={props.onOutlineShapes}
+                        gray
                     />
                 </InputGroup>
                 {props.fillBitmapShapes ? null : (
                     <InputGroup>
-                        <Label text={intl.formatMessage(messages.thickness)}>
+                        <Label text={props.intl.formatMessage(messages.thickness)}>
                             <LiveInput
                                 range
                                 small
@@ -316,6 +318,7 @@ ModeToolsComponent.propTypes = {
     format: PropTypes.oneOf(Object.keys(Formats)),
     hasSelectedUncurvedPoints: PropTypes.bool,
     hasSelectedUnpointedPoints: PropTypes.bool,
+    intl: intlShape.isRequired,
     mode: PropTypes.string.isRequired,
     onBitBrushSliderChange: PropTypes.func.isRequired,
     onBitEraserSliderChange: PropTypes.func.isRequired,
@@ -327,6 +330,7 @@ ModeToolsComponent.propTypes = {
     onFillShapes: PropTypes.func.isRequired,
     onFlipHorizontal: PropTypes.func.isRequired,
     onFlipVertical: PropTypes.func.isRequired,
+    onManageFonts: PropTypes.func,
     onOutlineShapes: PropTypes.func.isRequired,
     onPasteFromClipboard: PropTypes.func.isRequired,
     onPointPoints: PropTypes.func.isRequired,
@@ -367,4 +371,4 @@ const mapDispatchToProps = dispatch => ({
 export default connect(
     mapStateToProps,
     mapDispatchToProps
-)(ModeToolsComponent);
+)(injectIntl(ModeToolsComponent));

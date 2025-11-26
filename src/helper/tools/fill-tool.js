@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import {getHoveredItem} from '../hover';
 import {expandBy} from '../math';
 import {createGradientObject} from '../style-path';
@@ -11,7 +11,7 @@ class FillTool extends paper.Tool {
     /**
      * @param {function} setHoveredItem Callback to set the hovered item
      * @param {function} clearHoveredItem Callback to clear the hovered item
-     * @param {!Function} onUpdateImage A callback to call when the image visibly changes
+     * @param {!function} onUpdateImage A callback to call when the image visibly changes
      */
     constructor (setHoveredItem, clearHoveredItem, onUpdateImage) {
         super();

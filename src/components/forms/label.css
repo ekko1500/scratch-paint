@@ -6,17 +6,20 @@ See https://github.com/LLK/scratch-paint/issues/13 */
 @import "../../css/colors.css";
 @import "../input-group/input-group.css";
 
-.input-label, .input-label-secondary {
+.input-label,
+.input-label-secondary {
     font-size: 0.625rem;
     user-select: none;
     cursor: default;
 }
 
-[dir="ltr"] .input-label, [dir="ltr"] .input-label-secondary{
+[dir="ltr"] .input-label,
+[dir="ltr"] .input-label-secondary {
     margin-right: calc(2 * $grid-unit);
 }
 
-[dir="rtl"] .input-label, [dir="ltr"] .input-label-secondary{
+[dir="rtl"] .input-label,
+[dir="ltr"] .input-label-secondary {
     margin-left: calc(2 * $grid-unit);
 }
 
@@ -27,9 +30,11 @@ See https://github.com/LLK/scratch-paint/issues/13 */
 @media only screen and (max-width: $full-size-paint) {
     .input-group {
         display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        margin-top: -1rem; /* To align with the non-labeled inputs */
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin-top: 0; /* To align with the non-labeled inputs */
     }
 
     .input-label {

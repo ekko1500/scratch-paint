@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import {floodFill, floodFillAll, getHitBounds} from '../bitmap';
 import {createGradientObject} from '../style-path';
 import {createCanvas, getRaster} from '../layer';
@@ -10,7 +10,7 @@ const TRANSPARENT = 'rgba(0,0,0,0)';
  */
 class FillTool extends paper.Tool {
     /**
-     * @param {!Function} onUpdateImage A callback to call when the image visibly changes
+     * @param {!function} onUpdateImage A callback to call when the image visibly changes
      */
     constructor (onUpdateImage) {
         super();

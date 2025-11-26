@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import Modes, {BitmapModes} from '../../lib/modes';
 import {isGroup} from '../group';
 import {isCompoundPathItem, getRootItem} from '../item';
@@ -21,8 +21,8 @@ class MoveTool {
      * @param {Modes} mode Paint editor mode
      * @param {function} setSelectedItems Callback to set the set of selected items in the Redux state
      * @param {function} clearSelectedItems Callback to clear the set of selected items in the Redux state
-     * @param {!Function} onUpdateImage A callback to call when the image visibly changes
-     * @param {?Function} switchToTextTool A callback to call to switch to the text tool
+     * @param {!function} onUpdateImage A callback to call when the image visibly changes
+     * @param {?function} switchToTextTool A callback to call to switch to the text tool
      */
     constructor (mode, setSelectedItems, clearSelectedItems, onUpdateImage, switchToTextTool) {
         this.mode = mode;
@@ -41,7 +41,7 @@ class MoveTool {
      * @param {!paper.HitResult} hitProperties.hitResult Data about the location of the mouse click
      * @param {?boolean} hitProperties.clone Whether to clone on mouse down (e.g. alt key held)
      * @param {?boolean} hitProperties.multiselect Whether to multiselect on mouse down (e.g. shift key held)
-     * @param {?boolean} hitProperties.doubleClicked True if this is the second click in a short amount of time
+     * @param {?boolean} hitProperties.doubleClicked True if this is the second click in a short amout of time
      * @param {?boolean} hitProperties.subselect True if we allow selection of subgroups, false if we should
      *     select the whole group.
      */

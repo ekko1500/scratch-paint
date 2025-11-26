@@ -5,7 +5,7 @@ import {selectRootItem} from '../selection';
 import BoundingBoxTool from './bounding-box-tool';
 import NudgeTool from './nudge-tool';
 import SelectionBoxTool from './selection-box-tool';
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 
 /**
  * paper.Tool that handles select mode. This is made up of 2 subtools.
@@ -29,8 +29,8 @@ class SelectTool extends paper.Tool {
      * @param {function} setSelectedItems Callback to set the set of selected items in the Redux state
      * @param {function} clearSelectedItems Callback to clear the set of selected items in the Redux state
      * @param {function} setCursor Callback to set the visible mouse cursor
-     * @param {!Function} onUpdateImage A callback to call when the image visibly changes
-     * @param {!Function} switchToTextTool A callback to call to switch to the text tool
+     * @param {!function} onUpdateImage A callback to call when the image visibly changes
+     * @param {!function} switchToTextTool A callback to call to switch to the text tool
      */
     constructor (setHoveredItem, clearHoveredItem, setSelectedItems, clearSelectedItems, setCursor, onUpdateImage,
         switchToTextTool) {
@@ -86,7 +86,7 @@ class SelectTool extends paper.Tool {
      * Returns the hit options to use when conducting hit tests.
      * @param {boolean} preselectedOnly True if we should only return results that are already
      *     selected.
-     * @returns {object} See paper.Item.hitTest for definition of options
+     * @return {object} See paper.Item.hitTest for definition of options
      */
     getHitOptions (preselectedOnly) {
         // Tolerance needs to be scaled when the view is zoomed in in order to represent the same

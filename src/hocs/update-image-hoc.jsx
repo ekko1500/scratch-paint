@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import PropTypes from 'prop-types';
 import log from '../log/log';
 import bindAll from 'lodash.bindall';
@@ -23,6 +23,7 @@ import {
 
 import Modes, {BitmapModes} from '../lib/modes';
 import Formats, {isBitmap, isVector} from '../lib/format';
+import {isImportingImage} from '../lib/tw-is-importing-image';
 
 const UpdateImageHOC = function (WrappedComponent) {
     class UpdateImageWrapper extends React.Component {
@@ -42,6 +43,10 @@ const UpdateImageHOC = function (WrappedComponent) {
          * the does not accurately represent the format.
          */
         handleUpdateImage (skipSnapshot, formatOverride) {
+            if (isImportingImage()) {
+                log.warn('ignoring image update: still importing.');
+                return;
+            }
             // If in the middle of switching formats, rely on the current mode instead of format.
             const actualFormat = formatOverride ? formatOverride :
                 BitmapModes[this.props.mode] ? Formats.BITMAP : Formats.VECTOR;

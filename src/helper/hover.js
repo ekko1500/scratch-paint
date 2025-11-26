@@ -1,4 +1,4 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 import {isBoundsItem, getRootItem} from './item';
 import {hoverBounds, hoverItem} from './guides';
 import {isGroupChild} from './group';
@@ -9,7 +9,7 @@ import {sortItemsByZIndex} from './math';
  * @param {?object} hitOptions hit options to use
  * @param {?boolean} subselect Whether items within groups can be hovered. If false, the
  *    entire group should be hovered.
- * @returns {paper.Item} the hovered item or null if there is none
+ * @return {paper.Item} the hovered item or null if there is none
  */
 const getHoveredItem = function (event, hitOptions, subselect) {
     const oldMatch = hitOptions.match;

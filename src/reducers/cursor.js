@@ -30,7 +30,7 @@ const reducer = function (state, action) {
 /**
  * Set the mouse cursor state to the given string
  * @param {string} cursorString The CSS cursor string.
- * @returns {object} Redux action to change the cursor.
+ * @return {object} Redux action to change the cursor.
  */
 const setCursor = function (cursorString) {
     return {

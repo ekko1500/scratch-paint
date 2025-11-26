@@ -1,19 +1,31 @@
 @import "../../css/colors";
 @import "../../css/units";
+@import "../../css/colors";
+@import "../../css/filters.css";
 
 /* Popover styles */
+/* body is for specificity to override some addons that set a lower z-index */
+body :global(.Popover) {
+    /* should be above menu bar */
+    z-index: 500;
+
+    /* color-scheme: dark causes very strange issues */
+    color-scheme: light;
+}
+
 :global(.Popover-body) {
-    background: white;
-    border: 1px solid #ddd;
+    color: $text-primary;
+    background: $popover-background;
+    border: 1px solid $ui-pane-border;
     padding: 4px;
     border-radius: 4px;
     padding: 4px;
-    box-shadow: 0px 0px 8px 1px rgba(0, 0, 0, .3);
+    box-shadow: 0px 0px 8px 1px $ui-pane-border;
 }
 
 :global(.Popover-tipShape) {
-    fill: white;
-    stroke: #ddd;
+    fill: $popover-background;
+    stroke: $ui-pane-border;
 }
 
 .clickable {
@@ -29,16 +41,7 @@
 .row-header {
     font-family: "Helvetica Neue", Helvetica, sans-serif;
     font-size: 0.65rem;
-    color: #575E75;
-    margin: 8px;
-}
-
-[dir="ltr"] .label-readout {
-    margin-left: 10px;
-}
-
-[dir="rtl"] .label-readout {
-    margin-right: 10px;
+    margin: 8px 8px 0 8px;
 }
 
 .label-name {
@@ -46,7 +49,7 @@
 }
 
 .divider {
-    border-top: 1px solid #ddd;
+    border-top: 1px solid $ui-pane-border;
     margin: 8px;
 }
 
@@ -62,7 +65,7 @@
 .swatch {
     width: 1.5rem;
     height: 1.5rem;
-    border: 1px solid #ddd;
+    border: 1px solid $ui-pane-border;
     border-radius: 4px;
     box-sizing: content-box;
     display: flex;
@@ -89,6 +92,10 @@
     height: 1.5rem;
 }
 
+.picker-icon {
+    filter: $filter-icon-gray;
+}
+
 .inactive-gradient {
     filter: saturate(0%);
 }
@@ -112,4 +119,34 @@
 
 [dir="rtl"] .gradient-swatches-row {
     flex-direction: row-reverse;
+}
+
+.picker-row {
+    display: flex;
+    margin: 8px;
+    margin-top: 12px;
+    width: 150px;
+    align-items: center;
+}
+.picker-row .picker-color {
+    border: none;
+    border-radius: 0;
+    padding: 0 0.2rem;
+    width: 3rem;
+    box-sizing: border-box;
+    cursor: pointer;
+    margin: 0;
+    padding: 0;
+}
+.picker-row .picker-text {
+    box-sizing: border-box;
+    width: 100%;
+}
+[dir="ltr"] .picker-row .picker-text {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+[dir="rtl"] .picker-row .picker-text {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
 }

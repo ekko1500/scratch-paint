@@ -33,40 +33,29 @@ class LoupeComponent extends React.Component {
         ctx.fillStyle = 'white';
         ctx.fillRect(0, 0, loupeDiameter, loupeDiameter);
 
-        // In order to scale the image data, must draw to a tmp canvas first
-        const tmpCanvas = document.createElement('canvas');
-        tmpCanvas.width = loupeDiameter;
-        tmpCanvas.height = loupeDiameter;
-        const tmpCtx = tmpCanvas.getContext('2d');
-        const imageData = tmpCtx.createImageData(
-            loupeDiameter, loupeDiameter
+        ctx.drawImage(
+            this.props.colorInfo.data.image,
+            this.props.colorInfo.data.x,
+            this.props.colorInfo.data.y,
+            this.props.colorInfo.data.width,
+            this.props.colorInfo.data.height,
+            0,
+            0,
+            loupeDiameter,
+            loupeDiameter
         );
-
-        // Since the color info comes from elsewhere there is no guarantee
-        // about the size. Make sure it matches to prevent data.set from throwing.
-        // See issue #966 for example of how that can happen.
-        if (this.props.colorInfo.data.length === imageData.data.length) {
-            imageData.data.set(this.props.colorInfo.data);
-        } else {
-            console.warn('Image data size mismatch drawing loupe'); // eslint-disable-line no-console
-        }
-
-        tmpCtx.putImageData(imageData, 0, 0);
-
-        // Scale the loupe canvas and draw the zoomed image
-        ctx.drawImage(tmpCanvas, 0, 0);
 
         // Draw an outlined square at the cursor position (cursor is hidden)
         ctx.lineWidth = boxLineWidth;
-        ctx.strokeStyle = 'black';
-        ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
+        ctx.strokeStyle = this.props.theme === 'light' ? 'black' : '#888';
+        ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3] / 255})`;
         ctx.beginPath();
         ctx.rect(loupeRadius - (boxSize / 2), loupeRadius - (boxSize / 2), boxSize, boxSize);
         ctx.fill();
         ctx.stroke();
 
         // Draw a thick ring around the loupe showing the current color
-        ctx.strokeStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
+        ctx.strokeStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3] / 255})`;
         ctx.lineWidth = colorRingWidth;
         ctx.beginPath();
         ctx.moveTo(loupeDiameter, loupeDiameter);
@@ -88,6 +77,8 @@ class LoupeComponent extends React.Component {
             ...boxProps
         } = this.props;
         const loupeDiameter = ZOOM_SCALE * LOUPE_RADIUS * 2;
+        const x = (colorInfo.x / pixelRatio) - (loupeDiameter / 2);
+        const y = (colorInfo.y / pixelRatio) - (loupeDiameter / 2);
         return (
             <Box
                 {...boxProps}
@@ -96,8 +87,7 @@ class LoupeComponent extends React.Component {
                 element="canvas"
                 height={LOUPE_RADIUS * 2}
                 style={{
-                    top: (colorInfo.y / pixelRatio) - (loupeDiameter / 2),
-                    left: (colorInfo.x / pixelRatio) - (loupeDiameter / 2),
+                    transform: `translate(${x}px, ${y}px)`,
                     width: loupeDiameter,
                     height: loupeDiameter
                 }}
@@ -112,9 +102,16 @@ LoupeComponent.propTypes = {
         color: PropTypes.instanceOf(Uint8ClampedArray), // this is the [r,g,b,a] array
         x: PropTypes.number,
         y: PropTypes.number,
-        data: PropTypes.instanceOf(Uint8ClampedArray)
+        data: PropTypes.shape({
+            image: PropTypes.instanceOf(HTMLCanvasElement),
+            x: PropTypes.number,
+            y: PropTypes.number,
+            width: PropTypes.number,
+            height: PropTypes.number
+        })
     }),
-    pixelRatio: PropTypes.number.isRequired
+    pixelRatio: PropTypes.number.isRequired,
+    theme: PropTypes.string.isRequired
 };
 
 export default LoupeComponent;

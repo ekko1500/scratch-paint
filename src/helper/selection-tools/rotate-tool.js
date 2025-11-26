@@ -1,11 +1,11 @@
-import paper from '@scratch/paper';
+import paper from '@turbowarp/paper';
 
 /**
  * Tool to handle rotation when dragging the rotation handle in the bounding box tool.
  */
 class RotateTool {
     /**
-     * @param {!Function} onUpdateImage A callback to call when the image visibly changes
+     * @param {!function} onUpdateImage A callback to call when the image visibly changes
      */
     constructor (onUpdateImage) {
         this.rotItems = [];
